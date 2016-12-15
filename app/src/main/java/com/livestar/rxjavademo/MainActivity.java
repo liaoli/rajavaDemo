@@ -33,8 +33,8 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "rxjava";
     private static final int CODE_FOR_OPEN_CAMERA = 100;
     private ImageView iv;
-    private TextView tv;
-    StringBuilder stringBuilder = new StringBuilder("children:");
+    private TextView tv,flatTV;
+    StringBuilder stringBuilder = new StringBuilder("children:"),sb = new StringBuilder("children:");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,11 +45,34 @@ public class MainActivity extends AppCompatActivity {
 
         iv = (ImageView) findViewById(R.id.iv);
         tv = (TextView) findViewById(R.id.tv);
+        flatTV = (TextView) findViewById(R.id.tv_flat_map);
 
         ArrayList<People> peoples = new ArrayList<>();
 
 
         People people = new People("lily", 27, false, new String[]{"haha", "vivi", "baby", "rabby"});
+
+
+        Observable.just(people,people,people).flatMap(new Func1<People, Observable<String[]>>() {
+            @Override
+            public Observable<String[]> call(People people) {
+
+                return Observable.just(people.getChildren());
+            }
+        }).subscribe(new Action1<String[]>() {
+            @Override
+            public void call(String[] strings) {
+                Observable.from(strings).subscribe(new Action1<String>() {
+                    @Override
+                    public void call(String s) {
+                        sb.append(s);
+
+                        flatTV.setText(sb);
+                    }
+                });
+            }
+        });
+
 
 
         rxjavaMap(people);
