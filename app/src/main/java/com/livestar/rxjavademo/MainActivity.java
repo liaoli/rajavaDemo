@@ -15,7 +15,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import java.util.ArrayList;
 
 import rx.Observable;
 import rx.Observer;
@@ -30,6 +33,8 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "rxjava";
     private static final int CODE_FOR_OPEN_CAMERA = 100;
     private ImageView iv;
+    private TextView tv;
+    StringBuilder stringBuilder = new StringBuilder("children:");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,25 +44,59 @@ public class MainActivity extends AppCompatActivity {
 
 
         iv = (ImageView) findViewById(R.id.iv);
+        tv = (TextView) findViewById(R.id.tv);
 
-       Log.e(TAG,Environment.getExternalStorageDirectory().getAbsolutePath());
+        ArrayList<People> peoples = new ArrayList<>();
+
+
+        People people = new People("lily", 27, false, new String[]{"haha", "vivi", "baby", "rabby"});
+
+
+        rxjavaMap(people);
+
+
+        Log.e(TAG, Environment.getExternalStorageDirectory().getAbsolutePath());
 
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-           checkPerssion();
+            checkPerssion();
 
         } else {
             rxjaveMap();
         }
-        //rxjavaDemo1();
-
 
 
     }
 
+    private void rxjavaMap(People people) {
+        Observable.just(people).map(new Func1<People, String[]>() {
+            @Override
+            public String[] call(People people) {
+
+                return people.getChildren();
+            }
+        }).subscribe(new Action1<String[]>() {
+            @Override
+            public void call(String[] strings) {
+
+                for (String s : strings) {
+                    stringBuilder.append(" " + s);
+                }
+
+                tv.setText(stringBuilder);
+                Log.e(TAG, "Action1----" + "call" + "---->" + stringBuilder + Thread.currentThread().getName());
+            }
+        });
+    }
+
+
+    /**
+     * 简单变换
+     */
     private void rxjaveMap() {
         Observable.just("/mnt/sdcard/a.jpg").map(new Func1<String, Bitmap>() {
             @Override
             public Bitmap call(String filePath) {
+                Log.e(TAG, "map----" + "call" + "---->" + Thread.currentThread().getName());
 
                 return createBitmap(filePath);
             }
@@ -71,13 +110,13 @@ public class MainActivity extends AppCompatActivity {
 
     @TargetApi(Build.VERSION_CODES.M)
     private void checkPerssion() {
-       int hasPermission = checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)|checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE);
+        int hasPermission = checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) | checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE);
 
-        if(hasPermission != PackageManager.PERMISSION_GRANTED){
+        if (hasPermission != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE,
                             Manifest.permission.READ_EXTERNAL_STORAGE},
                     CODE_FOR_OPEN_CAMERA);
-        }else{
+        } else {
             rxjaveMap();
         }
 
@@ -91,15 +130,15 @@ public class MainActivity extends AppCompatActivity {
                     && grantResults[0] == PackageManager.PERMISSION_GRANTED && permissions[1].equals(Manifest.permission.READ_EXTERNAL_STORAGE)
                     && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
                 rxjaveMap();
-            }else{
-                Toast.makeText(getApplication(),"没有权限",Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(getApplication(), "没有权限", Toast.LENGTH_SHORT).show();
             }
         }
 
     }
 
     private Bitmap createBitmap(String filePath) {
-
+        Log.e(TAG, "map----" + "createBitmap" + "---->" + Thread.currentThread().getName());
         Bitmap bitmap = BitmapFactory.decodeFile(filePath);
 
         return bitmap;
@@ -109,17 +148,17 @@ public class MainActivity extends AppCompatActivity {
         Observer<String> observer = new Observer<String>() {
             @Override
             public void onCompleted() {
-                Log.e(TAG,"observer----" + "onCompleted" + "---->" + Thread.currentThread().getName());
+                Log.e(TAG, "observer----" + "onCompleted" + "---->" + Thread.currentThread().getName());
             }
 
             @Override
             public void onError(Throwable e) {
-                Log.e(TAG,"observer----" + "onError" + Thread.currentThread().getName());
+                Log.e(TAG, "observer----" + "onError" + Thread.currentThread().getName());
             }
 
             @Override
             public void onNext(String s) {
-                Log.e(TAG,"observer----" + "onNext------->" + s + "---->"+ Thread.currentThread().getName());
+                Log.e(TAG, "observer----" + "onNext------->" + s + "---->" + Thread.currentThread().getName());
             }
         };
 
@@ -131,7 +170,7 @@ public class MainActivity extends AppCompatActivity {
                 subscriber.onNext("hello");
                 subscriber.onNext("hehe");
                 subscriber.onCompleted();
-                Log.e(TAG,"OnSubscribe---call---->" + Thread.currentThread().getName());
+                Log.e(TAG, "OnSubscribe---call---->" + Thread.currentThread().getName());
             }
         });
 
